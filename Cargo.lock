@@ -60,7 +60,7 @@ checksum = "1b8e56985ec62d17e9c1001dc89c88ecd7dc08e47eba5ec7c29c7b5eeecde967"
 name = "body-plz"
 version = "0.0.54"
 dependencies = [
- "buffer-plz 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "buffer-plz 0.0.3",
  "bytes",
  "header-plz 0.0.49 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror",
@@ -73,7 +73,7 @@ version = "0.0.54"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8e897791fb3b1203a781acfb05d55037197984618dd1b3f25e8894f09f7ad791"
 dependencies = [
- "buffer-plz 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "buffer-plz 0.0.3",
  "bytes",
  "header-plz 0.0.49 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror",
@@ -104,15 +104,15 @@ dependencies = [
 [[package]]
 name = "buffer-plz"
 version = "0.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be9674282db9cd812c344318a7725c5c4da13049e35ca3f0bedba12f685db9e3"
 dependencies = [
  "bytes",
 ]
 
 [[package]]
 name = "buffer-plz"
-version = "0.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be9674282db9cd812c344318a7725c5c4da13049e35ca3f0bedba12f685db9e3"
+version = "0.0.4"
 dependencies = [
  "bytes",
 ]
@@ -396,7 +396,7 @@ checksum = "841d1cc9bed7f9236f321df977030373f4a4163ae1a7dbfe1a51a2c1a51d9100"
 name = "header-plz"
 version = "0.0.49"
 dependencies = [
- "buffer-plz 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "buffer-plz 0.0.3",
  "bytes",
  "mime-plz 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "percent-encoding",
@@ -411,7 +411,7 @@ version = "0.0.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c5c27476ee82b1e9e3065d0f2d13041d01cc8ef73f6f35078ef3dfa850ed0eb6"
 dependencies = [
- "buffer-plz 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "buffer-plz 0.0.3",
  "bytes",
  "mime-plz 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "percent-encoding",
@@ -622,7 +622,7 @@ dependencies = [
 name = "protocol-traits-plz"
 version = "0.0.4"
 dependencies = [
- "buffer-plz 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "buffer-plz 0.0.3",
  "bytes",
 ]
 

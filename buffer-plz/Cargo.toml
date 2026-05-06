@@ -1,6 +1,6 @@
 [package]
 name = "buffer-plz"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["darkseid", "sytten <emile@caido.io>"]
 description = "Buffer for the ParsePlz ecosystem"
 repository = "https://github.com/parseplz/primitives"
