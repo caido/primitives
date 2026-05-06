@@ -380,6 +380,19 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn test_chunked_split_extension_err() {
+        let data = "123G\r\n";
+        let mut buf = BytesMut::from(data);
+        let mut cbuf = Cursor::new(&mut buf);
+        let result = ChunkReaderState::mark_size_chunk(&mut cbuf);
+        assert!(result);
+        assert_eq!(cbuf.position(), data.len() - 2);
+        let result = ChunkReaderState::try_get_size(&mut cbuf);
+        assert!(result.is_err());
+        assert_eq!(data.as_bytes(), cbuf.as_ref());
+    }
+
+    #[test]
     fn test_mark_size_chunk_false() {
         let data = "7\r";
         let mut buf = BytesMut::from(data);
