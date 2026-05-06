@@ -31,12 +31,6 @@ impl<'a> Cursor<'a> {
         self.pos = 0;
     }
 
-    // Len of the inner value
-    #[allow(clippy::len_without_is_empty)]
-    pub fn len(&self) -> usize {
-        self.inner.len()
-    }
-
     pub fn remaining(&self) -> &[u8] {
         self.inner[self.pos..].as_ref()
     }
@@ -46,6 +40,15 @@ impl<'a> Cursor<'a> {
         let pos = self.pos;
         self.reset();
         self.inner.split_to(pos)
+    }
+
+    // Len of the inner value
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
     }
 }
 
