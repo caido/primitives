@@ -7,11 +7,21 @@ use crate::{
 };
 use bytes::{Bytes, BytesMut};
 
-#[derive(Clone, Eq, Debug, PartialEq)]
+#[derive(Clone, Eq, Debug)]
 pub struct Header {
     key: Bytes,
     value: Bytes,
     is_removed: bool,
+    is_sensitive: bool,
+}
+
+// Encoding policy does not change field equality.
+impl PartialEq for Header {
+    fn eq(&self, other: &Self) -> bool {
+        self.key == other.key
+            && self.value == other.value
+            && self.is_removed == other.is_removed
+    }
 }
 
 impl Header {
@@ -20,6 +30,7 @@ impl Header {
             key,
             value,
             is_removed: false,
+            is_sensitive: false,
         }
     }
 
@@ -27,8 +38,28 @@ impl Header {
         self.key.is_empty() && self.value.is_empty() && self.is_removed
     }
 
+    /// Whether this field occurrence must use a never-indexed representation
+    /// when encoded with HPACK. Defaults to false and does not affect equality.
+    pub fn is_sensitive(&self) -> bool {
+        self.is_sensitive
+    }
+
+    /// Sets the HPACK sensitivity policy for this occurrence only.
+    /// Byte mutations and clearing the field preserve this flag.
+    pub fn set_sensitive(&mut self, sensitive: bool) {
+        self.is_sensitive = sensitive;
+    }
+
+    /// Returns the field bytes, discarding sensitivity metadata.
+    /// Use [`Self::into_parts`] to preserve the encoding policy.
     pub fn into_inner(self) -> (Bytes, Bytes) {
         (self.key, self.value)
+    }
+
+    /// Returns the field bytes and per-occurrence sensitivity flag.
+    /// Like [`Self::into_inner`], this does not return the removal state.
+    pub fn into_parts(self) -> (Bytes, Bytes, bool) {
+        (self.key, self.value, self.is_sensitive)
     }
 }
 
@@ -127,6 +158,7 @@ where
             key: check_utf8_and_to_lowercase_bytes(key.as_ref()),
             value: Bytes::from(value.as_ref().to_owned()),
             is_removed: false,
+            is_sensitive: false,
         }
     }
 }
@@ -138,6 +170,7 @@ impl From<&[u8]> for Header {
             key: check_utf8_and_to_lowercase_bytes(key),
             value: Bytes::copy_from_slice(val),
             is_removed: false,
+            is_sensitive: false,
         }
     }
 }
@@ -158,6 +191,7 @@ impl From<&str> for Header {
             key: to_lowercase_bytes(key.as_bytes()),
             value: Bytes::from(value.as_bytes().to_owned()),
             is_removed: false,
+            is_sensitive: false,
         }
     }
 }
@@ -179,6 +213,98 @@ mod tests {
     use super::*;
     const CT: &str = "content-type";
 
+    #[test]
+    fn sensitivity_defaults_to_false() {
+        let headers = [
+            Header::new(
+                Bytes::from_static(b"key"),
+                Bytes::from_static(b"value"),
+            ),
+            Header::from(("key", "value")),
+            Header::from(b"key: value".as_slice()),
+            Header::from("key: value"),
+            Header::from(OneHeader::from(("key", "value"))),
+        ];
+        assert!(headers.iter().all(|h| !h.is_sensitive()));
+    }
+
+    #[test]
+    fn sensitivity_preserves_bytes_and_does_not_affect_equality() {
+        let plain = Header::from((b"key".as_slice(), b"\xff\x80".as_slice()));
+        let mut sensitive = plain.clone();
+        sensitive.set_sensitive(true);
+        assert!(sensitive.is_sensitive());
+        assert!(!plain.is_sensitive());
+        assert_eq!(plain, sensitive);
+        assert_eq!(sensitive.key_as_ref(), b"key");
+        assert_eq!(sensitive.value_as_ref(), b"\xff\x80");
+        sensitive.set_sensitive(false);
+        assert!(!sensitive.is_sensitive());
+    }
+
+    #[test]
+    fn sensitivity_survives_mutation_and_clear() {
+        let mut header = Header::from(("key", "value"));
+        header.set_sensitive(true);
+        header.change_key(b"other");
+        header.change_value(b"changed");
+        header.truncate_value(3);
+        assert!(header.is_sensitive());
+        assert_eq!(header.value_as_ref(), b"cha");
+        header.clear();
+        assert!(header.is_empty());
+        assert!(header.is_sensitive());
+        assert_eq!(header.key_as_str(), None);
+        assert_eq!(header.value_as_str(), None);
+        assert_ne!(header, Header::from(("", "")));
+    }
+
+    #[test]
+    fn sensitivity_survives_map_operations() {
+        use crate::message_head::header_map::HeaderMap;
+
+        let mut map = HeaderMap::new();
+        map.insert("key", "value");
+        map.insert("key", "value");
+        map.iter_mut().nth(1).unwrap().set_sensitive(true);
+        let flags = |map: &HeaderMap| {
+            map.iter().map(Header::is_sensitive).collect::<Vec<_>>()
+        };
+        assert_eq!(flags(&map), vec![false, true]);
+        let mut copied = HeaderMap::new();
+        copied.extend(map.clone());
+        assert_eq!(map, copied);
+        assert_eq!(flags(&copied), vec![false, true]);
+        let filtered: Vec<_> =
+            copied.clone().into_iter().filter(Header::is_sensitive).collect();
+        assert_eq!(filtered.len(), 1);
+        assert!(filtered[0].is_sensitive());
+        assert!(copied.remove_header(("key", "value")));
+        assert!(copied.iter().next().unwrap().is_empty());
+        assert_eq!(flags(&copied), vec![false, true]);
+        assert!(copied.remove_header(("key", "value")));
+        assert!(copied.iter().nth(1).unwrap().is_empty());
+        assert_eq!(flags(&copied), vec![false, true]);
+    }
+
+    #[test]
+    fn sensitivity_ownership_parts_and_legacy_pair() {
+        let mut header = Header::from(("key", "value"));
+        header.set_sensitive(true);
+        let pair: (Bytes, Bytes) = header.clone().into_inner();
+        assert_eq!(
+            pair,
+            (Bytes::from_static(b"key"), Bytes::from_static(b"value"))
+        );
+        let (key, value, sensitive) = header.into_parts();
+        assert!(sensitive);
+        let mut restored = Header::new(key, value);
+        restored.set_sensitive(sensitive);
+        assert!(restored.is_sensitive());
+        assert_eq!(restored.into_parts(), (pair.0, pair.1, true));
+        assert!(!Header::from(("key", "value")).into_parts().2);
+    }
+
     // from
     #[test]
     fn test_two_header_from_tuple_mixed() {
@@ -188,6 +314,7 @@ mod tests {
             key: Bytes::from(CT),
             value: Bytes::from(value.to_owned()),
             is_removed: false,
+            is_sensitive: false,
         };
         assert_eq!(header, expected);
     }
@@ -201,6 +328,7 @@ mod tests {
             key: Bytes::from(CT),
             value: Bytes::from(value.to_owned()),
             is_removed: false,
+            is_sensitive: false,
         };
         assert_eq!(header, expected);
     }
@@ -214,6 +342,7 @@ mod tests {
             key: Bytes::from(CT),
             value: Bytes::from(value.to_owned()),
             is_removed: false,
+            is_sensitive: false,
         };
         assert_eq!(header, expected);
     }
@@ -226,6 +355,7 @@ mod tests {
             key: Bytes::from(CT),
             value: Bytes::from("application/json".to_owned()),
             is_removed: false,
+            is_sensitive: false,
         };
         assert_eq!(header, expected);
     }
@@ -238,6 +368,7 @@ mod tests {
             key: Bytes::from(CT),
             value: Bytes::from("".to_owned()),
             is_removed: false,
+            is_sensitive: false,
         };
         assert_eq!(header, expected);
     }
@@ -250,6 +381,7 @@ mod tests {
             key: Bytes::from(CT),
             value: Bytes::from("".to_owned()),
             is_removed: false,
+            is_sensitive: false,
         };
         assert_eq!(header, expected);
     }

@@ -22,7 +22,7 @@ pub use info_line::one::request::RequestLine as OneRequestLine;
 pub use info_line::one::response::ResponseLine as OneResponseLine;
 
 // http2
-pub use info_line::two::request::RequestLine;
+pub use info_line::two::request::{RequestLine, RequestPseudoHeader, RequestSensitivity};
 pub use info_line::two::response::ResponseLine;
 
 // headers
