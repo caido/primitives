@@ -62,20 +62,7 @@ version = "0.0.55"
 dependencies = [
  "buffer-plz 0.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes",
- "header-plz 0.0.50 (registry+https://github.com/rust-lang/crates.io-index)",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "body-plz"
-version = "0.0.55"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bca60227b6707d4aec6e0ce57e34bb9c3142e906be38b3b9f07fb977f1083b67"
-dependencies = [
- "buffer-plz 0.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "bytes",
- "header-plz 0.0.50 (registry+https://github.com/rust-lang/crates.io-index)",
+ "header-plz",
  "thiserror",
  "tracing",
 ]
@@ -290,11 +277,11 @@ checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
 name = "decompression-plz"
 version = "0.0.32"
 dependencies = [
- "body-plz 0.0.55 (registry+https://github.com/rust-lang/crates.io-index)",
+ "body-plz",
  "brotli",
  "bytes",
  "flate2",
- "header-plz 0.0.50 (registry+https://github.com/rust-lang/crates.io-index)",
+ "header-plz",
  "rstest",
  "tests-utils",
  "thiserror",
@@ -410,20 +397,6 @@ dependencies = [
  "mime-plz 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "percent-encoding",
  "rstest",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "header-plz"
-version = "0.0.50"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2dbfb70309a4acbb4390ed60986fc59777045cdfae811a78c19f1c043130a0b0"
-dependencies = [
- "buffer-plz 0.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "bytes",
- "mime-plz 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "percent-encoding",
  "thiserror",
  "tracing",
 ]
@@ -839,12 +812,12 @@ dependencies = [
 name = "tests-utils"
 version = "0.1.0"
 dependencies = [
- "body-plz 0.0.55 (registry+https://github.com/rust-lang/crates.io-index)",
+ "body-plz",
  "brotli",
  "bytes",
  "decompression-plz",
  "flate2",
- "header-plz 0.0.50 (registry+https://github.com/rust-lang/crates.io-index)",
+ "header-plz",
  "zstd",
 ]
 

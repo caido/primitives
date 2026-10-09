@@ -10,7 +10,7 @@ edition = "2024"
 [dependencies]
 buffer-plz = "0.0.4"
 bytes = { workspace = true }
-header-plz =  "0.0.50"
+header-plz = { path = "../header-plz", version = "0.0.50" }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 
