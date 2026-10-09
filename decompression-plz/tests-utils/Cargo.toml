@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-header-plz = "0.0.50"
-body-plz = "0.0.55"
+header-plz = { path = "../../header-plz", version = "0.0.50" }
+body-plz = { path = "../../body-plz", version = "0.0.55" }
 
 # Compression
 brotli = "8.0.0"
