@@ -32,7 +32,7 @@ impl BodyHeader {
     }
 
     pub fn content_type(&self) -> ContentType {
-        self.content_type.map_or(ContentType::Unknown, |ct| ct)
+        self.content_type.unwrap_or(ContentType::Unknown)
     }
 
     pub fn chunked_te_position(&self) -> Option<(usize, usize)> {

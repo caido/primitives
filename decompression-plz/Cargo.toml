@@ -15,7 +15,7 @@ body-plz = { path = "../body-plz", version = "0.0.55" }
 # Compression
 brotli = "8.0.0"
 flate2 = "1.1.0"
-zstd = "0.13.3"
+zstd = "^0.14.3"
 
 # Workspace
 bytes = { workspace = true }
